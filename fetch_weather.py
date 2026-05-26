@@ -26,7 +26,7 @@ def fetch_7day_hourly_weather(latitude: float, longitude: float):
 
 
 # ==========================================
-# 2. 日ごとの快適度スコアを計算する関数
+# 2. 日ごとの快適度スコアを計算する関数（季節対応版）
 # ==========================================
 def calculate_daily_scores(weather_data):
     """毎日 5:00 〜 8:00 のデータから、日ごとの快適度スコア（100点満点）を計算する"""
@@ -57,24 +57,45 @@ def calculate_daily_scores(weather_data):
     daily_scores = {}
 
     for date_str, data in daily_raw_data.items():
+        dt = datetime.fromisoformat(date_str)
+        current_month = dt.month  # その日の「月」を取得 (1〜12)
+
         max_precip = max(data["precips"])
         max_wind = max(data["winds"])
         avg_temp = sum(data["temps"]) / len(data["temps"])
 
+        # --- 新機能：季節に応じた快適温度の設定 ---
+        if current_month in [6, 7, 8, 9]:
+            # 夏の基準
+            min_comfort_temp = 16.0
+            max_comfort_temp = 26.0
+        elif current_month in [12, 1, 2, 3]:
+            # 冬の基準
+            min_comfort_temp = 5.0
+            max_comfort_temp = 15.0
+        else:
+            # 春・秋の基準
+            min_comfort_temp = 10.0
+            max_comfort_temp = 22.0
+
+        # --- スコア計算ロジック ---
         score = 100
 
+        # 1. 降水確率による減点
         if max_precip >= 50:
             score = 0
         else:
             score -= max_precip * 0.5
 
+        # 2. 風速による減点
         if max_wind > 15:
             score -= (max_wind - 15) * 1.5
 
-        if avg_temp < 10:
-            score -= (10 - avg_temp) * 2
-        elif avg_temp > 22:
-            score -= (avg_temp - 22) * 2
+        # 3. 体感温度による減点（自動設定された快適ゾーンを基準にする）
+        if avg_temp < min_comfort_temp:
+            score -= (min_comfort_temp - avg_temp) * 2
+        elif avg_temp > max_comfort_temp:
+            score -= (avg_temp - max_comfort_temp) * 2
 
         score = max(0, min(100, score))
 
@@ -83,6 +104,7 @@ def calculate_daily_scores(weather_data):
             "max_precip": max_precip,
             "max_wind": round(max_wind, 1),
             "avg_temp": round(avg_temp, 1),
+            "season_zone": f"{min_comfort_temp}℃〜{max_comfort_temp}℃",
         }
 
     return daily_scores
@@ -138,8 +160,8 @@ def optimize_schedule(daily_scores, target_days=3, ng_days=[]):
 if __name__ == "__main__":
     LATITUDE = 35.4437
     LONGITUDE = 139.6380
-    TARGET_DAYS = 2  # 週に走りたい日数
-    NG_DAYS = ["木", "日"]  # 走れないNG曜日
+    TARGET_DAYS = 2
+    NG_DAYS = ["木", "日"]
 
     print("--- ユーザー設定 ---")
     print(f"目標日数: 週 {TARGET_DAYS} 日")
@@ -168,10 +190,10 @@ if __name__ == "__main__":
 
             print(f"{formatted_date} : {score:3}点 | {comment}")
             print(
-                f"   (最高降水確率: {info['max_precip']}% | 最大風速: {info['max_wind']}km/h | 平均体感: {info['avg_temp']}℃)\n"
+                f"   (基準ゾーン: {info['season_zone']} | 平均体感: {info['avg_temp']}℃)"
             )
 
-        print("=== ✨ 今週のベストスケジュール ✨ ===")
+        print("\n=== ✨ 今週のベストスケジュール ✨ ===")
         best_days = optimize_schedule(scores, target_days=TARGET_DAYS, ng_days=NG_DAYS)
 
         if not best_days:
@@ -184,7 +206,4 @@ if __name__ == "__main__":
                 formatted_date = dt.strftime("%m/%d")
                 print(
                     f"🏃 【{formatted_date} ({day['weekday']})】 快適度: {day['score']}点"
-                )
-                print(
-                    f"    (降水確率: {day['detail']['max_precip']}% | 体感温度: {day['detail']['avg_temp']}℃)"
                 )
