@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 
 
@@ -58,40 +58,32 @@ def calculate_daily_scores(weather_data):
 
     for date_str, data in daily_raw_data.items():
         dt = datetime.fromisoformat(date_str)
-        current_month = dt.month  # その日の「月」を取得 (1〜12)
+        current_month = dt.month
 
         max_precip = max(data["precips"])
         max_wind = max(data["winds"])
         avg_temp = sum(data["temps"]) / len(data["temps"])
 
-        # --- 新機能：季節に応じた快適温度の設定 ---
         if current_month in [6, 7, 8, 9]:
-            # 夏の基準
             min_comfort_temp = 16.0
             max_comfort_temp = 26.0
         elif current_month in [12, 1, 2, 3]:
-            # 冬の基準
             min_comfort_temp = 5.0
             max_comfort_temp = 15.0
         else:
-            # 春・秋の基準
             min_comfort_temp = 10.0
             max_comfort_temp = 22.0
 
-        # --- スコア計算ロジック ---
         score = 100
 
-        # 1. 降水確率による減点
         if max_precip >= 50:
             score = 0
         else:
             score -= max_precip * 0.5
 
-        # 2. 風速による減点
         if max_wind > 15:
             score -= (max_wind - 15) * 1.5
 
-        # 3. 体感温度による減点（自動設定された快適ゾーンを基準にする）
         if avg_temp < min_comfort_temp:
             score -= (min_comfort_temp - avg_temp) * 2
         elif avg_temp > max_comfort_temp:
@@ -111,12 +103,13 @@ def calculate_daily_scores(weather_data):
 
 
 # ==========================================
-# 3. ユーザー設定に合わせてスケジュールを最適化する関数
+# 3. ユーザー設定に合わせてスケジュールを最適化する関数（動的ペナルティ版）
 # ==========================================
 def optimize_schedule(daily_scores, target_days=3, ng_days=[]):
-    """快適度スコア、目標日数、NG曜日に基づいて、今週のベストスケジュールを決定する"""
+    """連戦ペナルティをリアルタイムに計算しながら、今週のベストスケジュールを決定する"""
     candidates = []
 
+    # 1. 候補日の洗い出し
     for date_str, info in daily_scores.items():
         dt = datetime.fromisoformat(date_str)
         day_of_week = dt.strftime("%A")
@@ -142,14 +135,74 @@ def optimize_schedule(daily_scores, target_days=3, ng_days=[]):
             {
                 "date": date_str,
                 "weekday": jp_weekday,
-                "score": info["score"],
+                "original_score": info["score"],
                 "detail": info,
             }
         )
 
-    sorted_candidates = sorted(candidates, key=lambda x: x["score"], reverse=True)
-    best_schedule = sorted_candidates[:target_days]
-    best_schedule = sorted(best_schedule, key=lambda x: x["date"])
+    selected_days = []
+    selected_dates = set()
+
+    # 2. 1日ずつ、目標日数分（または候補日の上限まで）ループを回して選考する
+    loops = min(target_days, len(candidates))
+
+    for _ in range(loops):
+        best_candidate = None
+        best_current_score = -999
+
+        for c in candidates:
+            # すでに選ばれている日はスキップ
+            if c["date"] in selected_dates:
+                continue
+
+            current_dt = datetime.fromisoformat(c["date"])
+
+            # 前後2日分の日付文字列を作成して連戦チェックを行う
+            d_minus_1 = (current_dt - timedelta(days=1)).strftime("%Y-%m-%d")
+            d_minus_2 = (current_dt - timedelta(days=2)).strftime("%Y-%m-%d")
+            d_plus_1 = (current_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+            d_plus_2 = (current_dt + timedelta(days=2)).strftime("%Y-%m-%d")
+
+            penalty = 0
+
+            # 3日連続以上になるパターン (前後に挟まれる、または片側にすでに2連戦ある)
+            is_3_consecutive = (
+                (d_minus_1 in selected_dates and d_plus_1 in selected_dates)
+                or (d_minus_1 in selected_dates and d_minus_2 in selected_dates)
+                or (d_plus_1 in selected_dates and d_plus_2 in selected_dates)
+            )
+
+            # 2日連続になるパターン
+            is_2_consecutive = (
+                d_minus_1 in selected_dates or d_plus_1 in selected_dates
+            )
+
+            if is_3_consecutive:
+                penalty = 50
+            elif is_2_consecutive:
+                penalty = 15
+
+            # ペナルティを引いた「暫定スコア」で勝負する
+            current_score = c["original_score"] - penalty
+
+            if current_score > best_current_score:
+                best_current_score = current_score
+                best_candidate = c
+
+        # 今回のループで最もスコアが高かった日を「採用」として確定
+        if best_candidate:
+            selected_days.append(
+                {
+                    "date": best_candidate["date"],
+                    "weekday": best_candidate["weekday"],
+                    "score": best_candidate["original_score"],  # 画面には元の天気の点数を出す
+                    "detail": best_candidate["detail"],
+                }
+            )
+            selected_dates.add(best_candidate["date"])
+
+    # 3. 最終結果を日付順（カレンダー通り）に並び替える
+    best_schedule = sorted(selected_days, key=lambda x: x["date"])
 
     return best_schedule
 
@@ -160,7 +213,7 @@ def optimize_schedule(daily_scores, target_days=3, ng_days=[]):
 if __name__ == "__main__":
     LATITUDE = 35.4437
     LONGITUDE = 139.6380
-    TARGET_DAYS = 2
+    TARGET_DAYS = 3  # ペナルティの動きを見るために、テスト用に3日に変更しています
     NG_DAYS = ["木", "日"]
 
     print("--- ユーザー設定 ---")
