@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朝の最適ランニング・ウォーキング計画ナビ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-900 flex justify-center items-center gap-2">
+                <span>🏃</span> 朝の最適ランニング・ウォーキング計画ナビ
+            </h1>
+            <p class="text-slate-500 mt-2">HTML, CSS, JavaScript と Python API で動く本格Webアプリ</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+            <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定（横浜）</h2>
+            <div class="flex flex-wrap gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-medium text-slate-500 mb-1">週に走りたい日数</label>
+                    <select id="target-days" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500">
+                        <option value="1">1日</option>
+                        <option value="2">2日</option>
+                        <option value="3" selected>3日</option>
+                        <option value="4">4日</option>
+                    </select>
+                </div>
+                <button id="fetch-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-all shadow-sm shadow-blue-200">
+                    スケジュールを計算・更新
+                </button>
+            </div>
+        </div>
+
+        <div id="status-message" class="text-center text-slate-400 my-8 hidden">
+            データを取得中...
+        </div>
+
+        <main id="result-section" class="hidden">
+            <h2 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
+                <span>✨</span> 今週のベストスケジュール
+            </h2>
+            
+            <div id="card-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"></div>
+        </main>
+    </div>
+
+    <script>
+        const btn = document.getElementById('fetch-btn');
+        const targetDaysSelect = document.getElementById('target-days');
+        const statusMessage = document.getElementById('status-message');
+        const resultSection = document.getElementById('result-section');
+        const cardContainer = document.getElementById('card-container');
+
+        btn.addEventListener('click', async () => {
+            // 画面の表示状態をリセット
+            statusMessage.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+            cardContainer.innerHTML = '';
+
+            const targetDays = targetDaysSelect.value;
+            // 固定条件として横浜の座標、NG曜日（木・日）をセットしてURLを組み立て
+            const url = `http://127.0.0.1:8000/api/schedule?latitude=35.4437&longitude=139.6380&target_days=${targetDays}&ng_days=木&ng_days=日`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const schedule = data.best_schedule;
+
+                if (!schedule || schedule.length === 0) {
+                    statusMessage.textContent = "条件に合うランニング日和が見つかりませんでした…";
+                    return;
+                }
+
+                // 届いたJSONデータをループ処理して、HTMLのカードを組み立てる！
+                schedule.forEach(day => {
+                    // 日付のフォーマット整形（2026-06-08 -> 06/08）
+                    const dateObj = new Date(day.date);
+                    const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+
+                    // カード1枚分のHTMLテンプレートを作成
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between";
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-slate-900 font-bold text-lg">${formattedDate} <span class="text-sm font-normal text-slate-500">(${day.weekday})</span></span>
+                                <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded-full">${day.score} 点</span>
+                            </div>
+                            <div class="space-y-1.5 text-sm text-slate-600">
+                                <div class="flex items-center gap-1.5"><span>☔</span> 降水確率: ${day.detail.max_precip}%</div>
+                                <div class="flex items-center gap-1.5"><span>🌡️</span> 平均体感: ${day.detail.avg_temp}℃</div>
+                            </div>
+                        </div>
+                    `;
+                    // 親コンテナにカードをガチャンと結合
+                    cardContainer.appendChild(card);
+                });
+
+                // ローディングを消して結果を表示
+                statusMessage.classList.add('hidden');
+                resultSection.classList.remove('hidden');
+
+            } catch (error) {
+                statusMessage.textContent = "エラーが発生しました: " + error;
+            }
+        });
+    </script>
+</body>
+</html>
