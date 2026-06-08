@@ -17,22 +17,46 @@
         </header>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
-            <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定（横浜）</h2>
-            <div class="flex flex-wrap gap-4 items-end">
-                <div>
-                    <label class="block text-sm font-medium text-slate-500 mb-1">週に走りたい日数</label>
-                    <select id="target-days" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500">
+            <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定</h2>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-wrap gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-500 mb-1">緯度</label>
+                        <input id="latitude" type="number" step="0.0001" value="35.4437" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 w-28">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-500 mb-1">経度</label>
+                        <input id="longitude" type="number" step="0.0001" value="139.6380" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 w-28">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-500 mb-1">週に走りたい日数</label>
+                        <select id="target-days" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500">
                         <option value="1">1日</option>
                         <option value="2">2日</option>
                         <option value="3" selected>3日</option>
                         <option value="4">4日</option>
-                    </select>
+                        </select>
+                    </div>
+                    <button id="fetch-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-all shadow-sm shadow-blue-200">
+                        スケジュールを計算・更新
+                    </button>
                 </div>
-                <button id="fetch-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-all shadow-sm shadow-blue-200">
-                    スケジュールを計算・更新
-                </button>
+                
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="block text-sm font-medium text-slate-500 mb-1.5">走れないNG曜日（複数選択可）</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="月" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5">月</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="火" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5">火</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="水" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5">水</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="木" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5" checked>木</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="金" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5">金</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="土" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5">土</label>
+                        <label class="inline-flex items-center text-sm text-slate-600 cursor-pointer"><input type="checkbox" name="ng-day" value="日" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-1.5" checked>日</label>
+                    </div>
+                </div>
             </div>
         </div>
+
 
         <div id="status-message" class="text-center text-slate-400 my-8 hidden">
             データを取得中...
@@ -49,6 +73,9 @@
 
     <script>
         const btn = document.getElementById('fetch-btn');
+        // 【追加】HTMLの緯度・経度入力欄をJavaScriptの世界に持ってくる
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
         const targetDaysSelect = document.getElementById('target-days');
         const statusMessage = document.getElementById('status-message');
         const resultSection = document.getElementById('result-section');
@@ -60,10 +87,24 @@
             resultSection.classList.add('hidden');
             cardContainer.innerHTML = '';
 
+            // 【追加】ボタンが押された瞬間の入力欄の数値を読み取る
+            // ボタンが押された瞬間の入力欄の数値を読み取る
+            const lat = latitudeInput.value;
+            const lon = longitudeInput.value;
             const targetDays = targetDaysSelect.value;
-            // 固定条件として横浜の座標、NG曜日（木・日）をセットしてURLを組み立て
-            const url = `http://127.0.0.1:8000/api/schedule?latitude=35.4437&longitude=139.6380&target_days=${targetDays}&ng_days=木&ng_days=日`;
-
+            
+            // 【追加】チェックがついているすべてのNG曜日を配列として取得する
+            const checkedBoxes = document.querySelectorAll('input[name="ng-day"]:checked');
+            
+            // 【追加】取得した配列をループして、API用のURLパラメータ（&ng_days=〇&ng_days=〇）を組み立てる
+            let ngDaysParams = '';
+            checkedBoxes.forEach(box => {
+                // 日本語をURLに安全に乗せるために encodeURIComponent を使ってエンコードします
+                ngDaysParams += `&ng_days=${encodeURIComponent(box.value)}`;
+            });
+            
+            // 【変更】固定されていたURLの末尾に、組み立てた ngDaysParams をガチャンと結合する
+            const url = `http://127.0.0.1:8000/api/schedule?latitude=${lat}&longitude=${lon}&target_days=${targetDays}${ngDaysParams}`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
