@@ -63,11 +63,45 @@
         </div>
 
         <main id="result-section" class="hidden">
-            <h2 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
-                <span>✨</span> 今週のベストスケジュール
-            </h2>
-            
-            <div id="card-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"></div>
+            <div class="flex border-b border-slate-200 mb-6">
+                <button id="tab-btn-schedule" class="px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none">
+                    ✨ おすすめスケジュール
+                </button>
+                <button id="tab-btn-logic" class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none">
+                    💡 算出ロジックの解説
+                </button>
+            </div>
+
+            <div id="tab-content-schedule" class="">
+                <h2 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
+                    <span>✨</span> 今週のベストスケジュール
+                </h2>
+                <div id="card-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"></div>
+            </div>
+
+            <div id="tab-content-logic" class="hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5">
+                <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">💡 スケジュール算出ロジックの解説</h2>
+                <p class="text-sm text-slate-500 leading-relaxed">当アプリでは、使う人が根拠を持って安心して予定を組めるよう、以下のルールに則って論理的にロジックを計算しています。</p>
+                
+                <div class="space-y-4 text-sm text-slate-600">
+                    <div>
+                        <strong class="text-slate-800">1. データソースについて:</strong>
+                        <p class="mt-1 pl-4 border-l-2 border-slate-200">世界的な気象API（Open-Meteo）から、ランニング・ウォーキングに最適な「朝 5:00 〜 8:00」の時間帯データのみを抽出しています。</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-800">2. 天気の集計ルール:</strong>
+                        <p class="mt-1 pl-4 border-l-2 border-slate-200">降水確率・風速は時間内の「最大値」、体感温度は「平均値」を採用し、最もシビアな予報で判定します。</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-800">3. 快適度スコア（減点方式）:</strong>
+                        <p class="mt-1 pl-4 border-l-2 border-slate-200">降水確率50%以上は一発で0点。それ以外は強風や、季節ごとの快適温度ゾーンから外れた場合に減点されます。</p>
+                    </div>
+                    <div>
+                        <strong class="text-slate-800">4. 足腰を守る！連戦セーフティ機能:</strong>
+                        <p class="mt-1 pl-4 border-l-2 border-slate-200">2日連続は -15点、3日連続以上は -50点のペナルティを自動計算し、過度な連戦を防ぎます。</p>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -146,9 +180,42 @@
                 statusMessage.classList.add('hidden');
                 resultSection.classList.remove('hidden');
 
+                // 【追加】新しく計算したときは、常に最初のおすすめスケジュールタブを開いた状態にする
+                document.getElementById('tab-btn-schedule').click();
+
             } catch (error) {
                 statusMessage.textContent = "エラーが発生しました: " + error;
             }
+        });
+
+        // ==========================================
+        // 【追加】タブ切り替えの制御ロジック
+        // ==========================================
+        const tabBtnSchedule = document.getElementById('tab-btn-schedule');
+        const tabBtnLogic = document.getElementById('tab-btn-logic');
+        const tabContentSchedule = document.getElementById('tab-content-schedule');
+        const tabContentLogic = document.getElementById('tab-content-logic');
+
+        // 「おすすめスケジュール」タブがクリックされたときの動き
+        tabBtnSchedule.addEventListener('click', () => {
+            // 1. ボタンのデザイン（青い下線）をアクティブにする
+            tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
+            tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
+            
+            // 2. コンテンツの表示・非表示（hiddenの出し入れ）
+            tabContentSchedule.classList.remove('hidden'); // スケジュールを表示
+            tabContentLogic.classList.add('hidden');       // ロジック解説を隠す
+        });
+
+        // 「算出ロジックの解説」タブがクリックされたときの動き
+        tabBtnLogic.addEventListener('click', () => {
+            // 1. ボタンのデザイン（青い下線）をロジック側に移動する
+            tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
+            tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
+            
+            // 2. コンテンツの表示・非表示（hiddenの出し入れ）
+            tabContentSchedule.classList.add('hidden');       // スケジュールを隠す
+            tabContentLogic.classList.remove('hidden');    // ロジック解説を表示
         });
     </script>
 </body>
