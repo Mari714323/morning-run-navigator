@@ -1,0 +1,11 @@
+/* アプリ全体のカスタムスタイルシート */
+
+/* ボタンやつまみを選択したときの青い枠線を少しオシャレにする調整 */
+input:focus, select:focus, button:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* 画面のスクロールを滑らかにする設定 */
+html {
+    scroll-behavior: smooth;
+}

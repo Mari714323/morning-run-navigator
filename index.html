@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>朝の最適ランニング・ウォーキング計画ナビ</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
@@ -105,118 +106,6 @@
         </main>
     </div>
 
-    <script>
-        const btn = document.getElementById('fetch-btn');
-        // 【追加】HTMLの緯度・経度入力欄をJavaScriptの世界に持ってくる
-        const latitudeInput = document.getElementById('latitude');
-        const longitudeInput = document.getElementById('longitude');
-        const targetDaysSelect = document.getElementById('target-days');
-        const statusMessage = document.getElementById('status-message');
-        const resultSection = document.getElementById('result-section');
-        const cardContainer = document.getElementById('card-container');
-
-        btn.addEventListener('click', async () => {
-            // 画面の表示状態をリセット
-            statusMessage.classList.remove('hidden');
-            resultSection.classList.add('hidden');
-            cardContainer.innerHTML = '';
-
-            // 【追加】ボタンが押された瞬間の入力欄の数値を読み取る
-            // ボタンが押された瞬間の入力欄の数値を読み取る
-            const lat = latitudeInput.value;
-            const lon = longitudeInput.value;
-            const targetDays = targetDaysSelect.value;
-            
-            // 【追加】チェックがついているすべてのNG曜日を配列として取得する
-            const checkedBoxes = document.querySelectorAll('input[name="ng-day"]:checked');
-            
-            // 【追加】取得した配列をループして、API用のURLパラメータ（&ng_days=〇&ng_days=〇）を組み立てる
-            let ngDaysParams = '';
-            checkedBoxes.forEach(box => {
-                // 日本語をURLに安全に乗せるために encodeURIComponent を使ってエンコードします
-                ngDaysParams += `&ng_days=${encodeURIComponent(box.value)}`;
-            });
-            
-            // 【変更】固定されていたURLの末尾に、組み立てた ngDaysParams をガチャンと結合する
-            const url = `http://127.0.0.1:8000/api/schedule?latitude=${lat}&longitude=${lon}&target_days=${targetDays}${ngDaysParams}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                const schedule = data.best_schedule;
-
-                if (!schedule || schedule.length === 0) {
-                    statusMessage.textContent = "条件に合うランニング日和が見つかりませんでした…";
-                    return;
-                }
-
-                // 届いたJSONデータをループ処理して、HTMLのカードを組み立てる！
-                schedule.forEach(day => {
-                    // 日付のフォーマット整形（2026-06-08 -> 06/08）
-                    const dateObj = new Date(day.date);
-                    const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
-
-                    // カード1枚分のHTMLテンプレートを作成
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between";
-
-                    card.innerHTML = `
-                        <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="text-slate-900 font-bold text-lg">${formattedDate} <span class="text-sm font-normal text-slate-500">(${day.weekday})</span></span>
-                                <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded-full">${day.score} 点</span>
-                            </div>
-                            <div class="space-y-1.5 text-sm text-slate-600">
-                                <div class="flex items-center gap-1.5"><span>☔</span> 降水確率: ${day.detail.max_precip}%</div>
-                                <div class="flex items-center gap-1.5"><span>🌡️</span> 平均体感: ${day.detail.avg_temp}℃</div>
-                            </div>
-                        </div>
-                    `;
-                    // 親コンテナにカードをガチャンと結合
-                    cardContainer.appendChild(card);
-                });
-
-                // ローディングを消して結果を表示
-                statusMessage.classList.add('hidden');
-                resultSection.classList.remove('hidden');
-
-                // 【追加】新しく計算したときは、常に最初のおすすめスケジュールタブを開いた状態にする
-                document.getElementById('tab-btn-schedule').click();
-
-            } catch (error) {
-                statusMessage.textContent = "エラーが発生しました: " + error;
-            }
-        });
-
-        // ==========================================
-        // 【追加】タブ切り替えの制御ロジック
-        // ==========================================
-        const tabBtnSchedule = document.getElementById('tab-btn-schedule');
-        const tabBtnLogic = document.getElementById('tab-btn-logic');
-        const tabContentSchedule = document.getElementById('tab-content-schedule');
-        const tabContentLogic = document.getElementById('tab-content-logic');
-
-        // 「おすすめスケジュール」タブがクリックされたときの動き
-        tabBtnSchedule.addEventListener('click', () => {
-            // 1. ボタンのデザイン（青い下線）をアクティブにする
-            tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
-            tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
-            
-            // 2. コンテンツの表示・非表示（hiddenの出し入れ）
-            tabContentSchedule.classList.remove('hidden'); // スケジュールを表示
-            tabContentLogic.classList.add('hidden');       // ロジック解説を隠す
-        });
-
-        // 「算出ロジックの解説」タブがクリックされたときの動き
-        tabBtnLogic.addEventListener('click', () => {
-            // 1. ボタンのデザイン（青い下線）をロジック側に移動する
-            tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
-            tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
-            
-            // 2. コンテンツの表示・非表示（hiddenの出し入れ）
-            tabContentSchedule.classList.add('hidden');       // スケジュールを隠す
-            tabContentLogic.classList.remove('hidden');    // ロジック解説を表示
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
