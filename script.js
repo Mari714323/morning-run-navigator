@@ -14,6 +14,9 @@ const tabBtnLogic = document.getElementById('tab-btn-logic');
 const tabContentSchedule = document.getElementById('tab-content-schedule');
 const tabContentLogic = document.getElementById('tab-content-logic');
 
+// 【追加】描画したグラフのインスタンスを記憶しておく変数（再描画時のバグ防止用）
+let comfortChart = null;
+
 // ==========================================
 // 2. スケジュール計算・更新ボタンが押された時の処理
 // ==========================================
@@ -72,6 +75,61 @@ btn.addEventListener('click', async () => {
             `;
             cardContainer.appendChild(card);
         });
+
+        // --- 【追加】📊 Chart.js による快適度グラフの描画処理 ---
+        const dailyScores = data.daily_scores;
+        const labels = [];
+        const scoresData = [];
+
+        // バックエンドから届いた 7日間のデータ（オブジェクト）をループしてグラフ用の配列を作る
+        Object.keys(dailyScores).forEach(dateStr => {
+            const dateObj = new Date(dateStr);
+            // 日付のフォーマットを「06/17」のような形に整形
+            const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+            labels.push(formattedDate);
+            scoresData.push(dailyScores[dateStr].score);
+        });
+
+        // すでに過去のグラフが存在している場合は、一度破棄（destroy）する（Chart.jsが重なるバグを防ぐため）
+        if (comfortChart) {
+            comfortChart.destroy();
+        }
+
+        // HTMLに作った canvas（comfort-chart）を見つけて、棒グラフを描画！
+        const ctx = document.getElementById('comfort-chart').getContext('2d');
+        comfortChart = new Chart(ctx, {
+            type: 'bar', // 棒グラフを指定
+            data: {
+                labels: labels, // 横軸（日付）
+                datasets: [{
+                    label: '快適度スコア',
+                    data: scoresData, // 縦軸（点数）
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // さわやかな薄い青
+                    borderColor: 'rgb(59, 130, 246)', // 線の色
+                    borderWidth: 1,
+                    borderRadius: 8 // 棒の角を丸くして今風のフラットデザインにする
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100, // 快適度は100点満点
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // グラフの上の凡例（ラベル）はスッキリ消す
+                    }
+                }
+            }
+        });
+        // -----------------------------------------------------
 
         // ローディングを消して結果を表示
         statusMessage.classList.add('hidden');

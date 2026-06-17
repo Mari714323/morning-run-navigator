@@ -42,4 +42,8 @@ def get_schedule(
         scores, target_days=target_days, ng_days=ng_days
     )
 
-    return {"best_schedule": best_days}
+    # 【変更】おすすめ日だけでなく、グラフ描画用に7日間すべてのスコア（scores）も一緒に返却します
+    return {
+        "best_schedule": best_days,
+        "daily_scores": scores
+    }
