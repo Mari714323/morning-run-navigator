@@ -1,3 +1,6 @@
+// 💡 APIサーバーのベースURL（AWS本番環境へ移行する際はここを書き換えます）
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
 // ==========================================
 // 1. 画面のHTML要素を取得
 // ==========================================
@@ -42,7 +45,7 @@ let locationsData = [];
 
 async function fetchLocations() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/locations');
+        const response = await fetch(`${API_BASE_URL}/api/locations`);
         locationsData = await response.json();
 
         locationSelect.innerHTML = '';

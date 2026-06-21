@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import FastAPI, Query
-# CORSの許可証を発行するための部品をインポート
 from fastapi.middleware.cors import CORSMiddleware
+# 【追加】Mangum をインポート
+from mangum import Mangum
 
-# 【修正】backend フォルダの中から起動するため、頭の「backend.」を削除して直接インポートします
 from fetch_weather import (
     calculate_daily_scores,
     fetch_7day_hourly_weather,
@@ -12,14 +12,12 @@ from fetch_weather import (
 
 app = FastAPI()
 
-# CSVファイルを読み込むための部品
 import csv
 import os
 
 def load_locations_from_csv():
     """data/locations.csv から都道府県データを読み込む関数"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # 【修正】階層が1つ深くなったため、".." を挟んで1つ上のルート階層に戻ってから data フォルダを見に行くようにします
     csv_path = os.path.join(current_dir, "..", "data", "locations.csv")
     locations = []
     if os.path.exists(csv_path):
@@ -35,17 +33,15 @@ def load_locations_from_csv():
 
 @app.get("/api/locations")
 def get_locations():
-    """都道府県リストをフロントエンドに返す新しいAPI"""
     return load_locations_from_csv()
 
 
-# --- CORSの設定（防犯カメラの許可リスト） ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # すべてのウェブサイト（画面）からのアクセスを許可
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # GETやPOSTなど、すべての通信方法を許可
-    allow_headers=["*"],  # すべてのデータヘッダーを許可
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -70,8 +66,13 @@ def get_schedule(
         scores, target_days=target_days, ng_days=ng_days
     )
 
-    # おすすめ日だけでなく、グラフ描画用に7日間すべてのスコア（scores）も一緒に返却します
     return {
         "best_schedule": best_days,
         "daily_scores": scores
     }
+
+# ==========================================
+# 🚀 【追加】AWS Lambda 用のハンドラー定義
+# ==========================================
+# AWS API Gateway から届いた電波を、FastAPIが処理できるように Mangum で仲介します
+handler = Mangum(app)

@@ -1,3 +1,6 @@
+// APIサーバーのベースURL（AWS本番環境へ移行する際はここを書き換えます）
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
 // ==========================================
 // 1. 画面のHTML要素を取得
 // ==========================================
@@ -33,7 +36,8 @@ async function initResultPage() {
         ngDaysParams += `&ng_days=${encodeURIComponent(day)}`;
     });
 
-    const url = `http://127.0.0.1:8000/api/schedule?latitude=${lat}&longitude=${lon}&target_days=${targetDays}${ngDaysParams}`;
+    // 🔍 修正後：直書きURLを変数に変更
+    const url = `${API_BASE_URL}/api/schedule?latitude=${lat}&longitude=${lon}&target_days=${targetDays}${ngDaysParams}`;
 
     try {
         const response = await fetch(url);
