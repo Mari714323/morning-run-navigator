@@ -7,6 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style type="text/tailwindcss">
+        @layer components {
+            /* 47都道府県や日数を選択する、共通の入力フィールドクラス */
+            .input-field {
+                @apply bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus:outline-blue-500 w-40 transition-all;
+            }
+            /* スケジュール計算・更新を行うプライマリボタンクラス */
+            .btn-primary {
+                @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-all shadow-sm shadow-blue-200 active:transform active:scale-[0.98];
+            }
+            /* 各セクションを包む、美しい白い角丸カードのベースクラス */
+            .card-base {
+                @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-8;
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
 
@@ -72,7 +89,7 @@
         </section>
 
 
-        <div id="form-section" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 scroll-mt-6"> 
+        <div id="form-section" class="card-base scroll-mt-6"> 
             <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定</h2>
             <div class="flex flex-col gap-4">
                 <div class="flex flex-wrap gap-4 items-end">
@@ -82,20 +99,20 @@
 
                     <div>
                         <label class="block text-sm font-medium text-slate-500 mb-1">対象の都道府県</label>
-                        <select id="location-select" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 w-40 font-medium text-slate-700">
+                        <select id="location-select" class="input-field">
                             <option value="">データ読み込み中...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-500 mb-1">週に走りたい日数</label>
-                        <select id="target-days" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500">
-                        <option value="1">1日</option>
-                        <option value="2">2日</option>
-                        <option value="3" selected>3日</option>
-                        <option value="4">4日</option>
+                        <select id="target-days" class="input-field w-24">
+                            <option value="1">1日</option>
+                            <option value="2">2日</option>
+                            <option value="3" selected>3日</option>
+                            <option value="4">4日</option>
                         </select>
                     </div>
-                    <button id="fetch-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-all shadow-sm shadow-blue-200">
+                    <button id="fetch-btn" class="btn-primary">
                         スケジュールを計算・更新
                     </button>
                 </div>
@@ -149,7 +166,7 @@
                 </div>
             </div>
 
-            <div id="tab-content-details" class="hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+            <div id="tab-content-details" class="hidden card-base">
                 <h2 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
                     <span>📅</span> 7日間の快適度詳細一覧
                 </h2>
@@ -170,7 +187,7 @@
                 </div>
             </div>
 
-            <div id="tab-content-logic" class="hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5">
+            <div id="tab-content-logic" class="hidden card-base space-y-5">
                 <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">💡 スケジュール算出ロジックの解説</h2>
                 <p class="text-sm text-slate-500 leading-relaxed">当アプリでは、使う人が根拠を持って安心して予定を組めるよう、以下のルールに則って論理的にロジックを計算しています。</p>
                 
