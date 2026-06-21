@@ -1,5 +1,5 @@
 // 💡 APIサーバーのベースURL（AWS本番環境へ移行する際はここを書き換えます）
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'https://t16zijc8vh.execute-api.ap-northeast-1.amazonaws.com';
 
 // ==========================================
 // 1. 画面のHTML要素を取得

@@ -1,3 +1,9 @@
+import os
+import sys
+# 💡【重要】自分がいるフォルダ（backend）の絶対パスを、Pythonの探索ルート（sys.path）に強制追加します
+# これにより、ローカルでもAWS環境でも、インポートのズレが100%綺麗に解消されます
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from typing import List
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
