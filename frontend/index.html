@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朝の最適ランニング・ウォーキング計画ナビ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', '"Noto Sans JP"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'modern': '0 10px 30px -5px rgb(0 0 0 / 0.01), 0 5px 15px -3px rgb(0 0 0 / 0.005)',
+                        'modern-lg': '0 20px 40px -10px rgb(0 0 0 / 0.04), 0 10px 20px -5px rgb(0 0 0 / 0.01)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer components {
+            /* 入力フィールド */
+            .input-field {
+                @apply bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 focus:outline-blue-500 w-40 transition-all focus:bg-white;
+            }
+            /* 計算ボタン */
+            .btn-primary {
+                @apply bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10 active:transform active:scale-[0.97];
+            }
+            /* フルワイド内のコンテンツを中央寄せにする、新・共通コンテナ */
+            .content-container {
+                @apply max-w-5xl mx-auto px-6 sm:px-8;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans min-h-screen antialiased">
+
+    <header class="w-full bg-white border-b border-slate-100 py-6">
+        <div class="content-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                <span>🏃</span> 朝の最適ランニング・ウォーキング計画ナビ
+            </h1>
+            <p class="text-slate-400 text-xs font-bold tracking-wider uppercase">もう、毎朝「走るかどうか」で悩まない</p>
+        </div>
+    </header>
+
+
+    <section class="w-full bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 text-white py-16 sm:py-20 relative overflow-hidden">
+        <div class="content-container relative z-10 text-center">
+            <h2 class="text-3xl sm:text-4xl font-black mb-6 leading-tight tracking-tight">
+                毎朝の「今日どうする？」を、<br class="sm:hidden">すべてゼロに。
+            </h2>
+            <p class="max-w-2xl mx-auto text-cyan-50/90 text-sm sm:text-base leading-relaxed mb-10 font-medium">
+                朝ランやウォーキングがつらい本当の理由。それは根性がないからではなく、ベッドの中で「今日走るべきか選ぶのにつまづいているから」です。<br><br>
+                天候と連戦リスクをシステムが自動で計算。あらかじめ今週のベストな日を確定させることで、<span class="bg-white/20 px-2 py-0.5 rounded-lg font-bold text-white">選ぶ意思力をゼロ</span>にし、あなたの朝の習慣化を圧倒的にラクにします。
+            </p>
+            <a href="#form-section" class="inline-block bg-white text-blue-600 font-extrabold px-10 py-4 rounded-2xl text-sm transition-all hover:bg-cyan-50 shadow-modern-lg transform hover:-translate-y-0.5 active:translate-y-0 tracking-wide">
+                今週のスケジュールを自動決定する 🚀
+            </a>
+        </div>
+        <div class="absolute -right-10 -top-10 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+        <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-indigo-200/10 rounded-full blur-2xl"></div>
+    </section>
+
+
+    <div class="w-full py-16">
+        <div class="content-container">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-2xl shadow-modern flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-cyan-50 text-cyan-600 text-2xl flex items-center justify-center rounded-xl mb-4 font-bold">🧠</div>
+                    <h4 class="font-bold text-slate-800 mb-1.5 text-sm">選択疲れからの解放</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">ロジックが最適な曜日を選び抜きます。朝は何も考えずに走り出すだけ。</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-modern flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 text-2xl flex items-center justify-center rounded-xl mb-4 font-bold">🛡️</div>
+                    <h4 class="font-bold text-slate-800 mb-1.5 text-sm">足腰を守るセーフティ</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">連戦ペナルティ機能が、あなたの体に優しい休息日を自動で確保します。</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-modern flex flex-col items-center text-center">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 text-2xl flex items-center justify-center rounded-xl mb-4 font-bold">📊</div>
+                    <h4 class="font-bold text-slate-800 mb-1.5 text-sm">ひと目でわかる快適度</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">リアルタイムの天気データから朝の3時間をピンポイントでグラフ化。</p>
+                </div>
+            </div>
+
+            <section class="bg-white p-8 sm:p-10 rounded-2xl shadow-modern mb-16">
+                <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span>💡</span> 走るまでの「見えないハードル」を下げるために
+                </h3>
+                <p class="text-slate-500 text-sm leading-relaxed space-y-3 font-medium">
+                    「朝起きて、スマホで天気を見て、降水確率をチェックして、昨日も走ったからどうしようか悩んで……」<br><br>
+                    これでは、靴を履く前に心が折れてしまうのも無理はありません。人間が1日に使える「意思の力」には限りがあります。<br>
+                    週末や夜のうちに、このナビで「今週は火・水・金に走る！」とカレンダーを決めておく。当日の朝は、ただその指示に従って動くだけ。「悩む隙」をなくすことこそが、怪我なく楽しく習慣を続ける一番の秘訣です。
+                </p>
+            </section>
+
+
+            <div id="form-section" class="bg-white p-8 rounded-2xl shadow-modern mb-12 scroll-mt-24"> 
+                <h2 class="text-base font-bold mb-6 text-slate-800 flex items-center gap-1.5"><span>📋</span> スケジュール条件設定</h2>
+                <div class="flex flex-col gap-5">
+                    <div class="flex flex-wrap gap-5 items-end">
+                        
+                        <input id="latitude" type="hidden" value="35.4437">
+                        <input id="longitude" type="hidden" value="139.6380">
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5 tracking-wider">対象の都道府県</label>
+                            <select id="location-select" class="input-field">
+                                <option value="">データ読み込み中...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5 tracking-wider">週に走りたい日数</label>
+                            <select id="target-days" class="input-field w-24">
+                                <option value="1">1日</option>
+                                <option value="2">2日</option>
+                                <option value="3" selected>3日</option>
+                                <option value="4">4日</option>
+                            </select>
+                        </div>
+                        <button id="fetch-btn" class="btn-primary">
+                            スケジュールを計算・更新 🚀
+                        </button>
+                    </div>
+                    
+                    <div class="border-t border-slate-100 pt-5 mt-2">
+                        <label class="block text-xs font-bold text-slate-400 mb-2.5 tracking-wider">走れないNG曜日（複数選択可）</label>
+                        <div class="flex flex-wrap gap-6">
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="月" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4">月</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="火" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4">火</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="水" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4">水</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="木" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4" checked>木</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="金" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4">金</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="土" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4">土</label>
+                            <label class="inline-flex items-center text-sm text-slate-600 font-medium cursor-pointer"><input type="checkbox" name="ng-day" value="日" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2 w-4 h-4" checked>日</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
