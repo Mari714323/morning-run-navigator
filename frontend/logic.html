@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算出ロジックの解説 - 朝の最適ランニング・ウォーキング計画ナビ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="content-container header-flex">
+            <div>
+                <h1 class="header-title"><span>🏃</span> 朝の最適ランニング・ウォーキング計画ナビ</h1>
+                <p class="header-sub">もう、毎朝「走るかどうか」で悩まない</p>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn-nav">トップページへ</a>
+                <a href="result.html" class="btn-back"><span>←</span> 結果画面に戻る</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="content-container">
+
+            <h2 class="section-title" style="font-size: 1.25rem;"><span>💡</span> スケジュール算出ロジックの解説</h2>
+            <p class="logic-intro">当アプリでは、使う人が根拠を持って安心して予定を組めるよう、以下のルールに則って論理的にロジックを計算しています。</p>
+            
+            <div class="logic-grid">
+                
+                <article class="logic-card">
+                    <h3 class="logic-card-title"><span>🌐</span> 1. データソースについて</h3>
+                    <p class="logic-card-desc">
+                        世界的な気象API（Open-Meteo）から、1時間ごとの最新予報データをリアルタイムに取得。ランニング・ウォーキングに最適な「朝 5:00 〜 8:00」の時間帯データのみをピンポイントで抽出して集計しています。
+                    </p>
+                </article>
+
+                <article class="logic-card">
+                    <h3 class="logic-card-title"><span>🛡️</span> 2. 天気の集計ルール</h3>
+                    <p class="logic-card-desc">
+                        朝の3時間の中で最もシビアな予報で判定します。少しの雨でも避けられるよう降水確率・風速は時間内の「最大値」、全体の寒暖感を捉えるため体感温度は「平均値」を採用しています。
+                    </p>
+                </article>
+
+                <article class="logic-card">
+                    <h3 class="logic-card-title"><span>📊</span> 3. 快適度スコア（減点方式）</h3>
+                    <p class="logic-card-desc">
+                        安全のため降水確率50%以上は一発で0点。それ以外は強風や、現在の「月」から自動判定した各季節ごとの快適温度ゾーン（例: 春秋は10℃〜22℃）から外れた場合に、1℃ごとに2点ずつ減点されます。
+                    </p>
+                </article>
+
+                <article class="logic-card">
+                    <h3 class="logic-card-title"><span>🧠</span> 4. 連戦セーフティ機能</h3>
+                    <p class="logic-card-desc">
+                        毎日連続して走る足腰の負担を防ぐブレーキ機能。スケジュールが2日連続になる日はスコアを-15点、3日連続以上は-50点のペナルティを自動計算し、過度な連戦を論理的に防ぎます。
+                    </p>
+                </article>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

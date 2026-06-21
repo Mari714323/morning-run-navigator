@@ -7,46 +7,32 @@ const displayPref = document.getElementById('display-pref');
 const cardContainer = document.getElementById('card-container');
 const detailsTableBody = document.getElementById('details-table-body');
 
-const tabBtnSchedule = document.getElementById('tab-btn-schedule');
-const tabBtnDetails = document.getElementById('tab-btn-details');
-const tabBtnLogic = document.getElementById('tab-btn-logic');
-
-const tabContentSchedule = document.getElementById('tab-content-schedule');
-const tabContentDetails = document.getElementById('tab-content-details');
-const tabContentLogic = document.getElementById('tab-content-logic');
-
 let comfortChart = null;
 
 // ==========================================
-// 2. 画面が開いた瞬間に一時メモリからデータを復元してAPIを叩く
+// 2. 一時メモリからデータを復元してAPIを叩く
 // ==========================================
 async function initResultPage() {
-    // 💡 sessionStorage からトップページで保存した条件を読み出す
     const lat = sessionStorage.getItem('run_navigator_lat');
     const lon = sessionStorage.getItem('run_navigator_lon');
     const targetDays = sessionStorage.getItem('run_navigator_target_days');
     const prefName = sessionStorage.getItem('run_navigator_pref_name');
     const ngDaysRaw = sessionStorage.getItem('run_navigator_ng_days');
 
-    // 🛡️ 安全対策：もしメモリが空っぽならトップページへ強制送還する
+    // 🛡️ 安全対策：メモリが空っぽならトップページへ強制送還
     if (!lat || !lon || !targetDays) {
         window.location.href = 'index.html';
         return;
     }
 
-    // 画面の地域バッジに都道府県名を表示
     displayPref.textContent = prefName || "指定地域";
-
-    // NG曜日の配列をJSONから復元
     const ngDays = ngDaysRaw ? JSON.parse(ngDaysRaw) : [];
 
-    // バックエンド（FastAPI）用のURLパラメータを組み立て
     let ngDaysParams = '';
     ngDays.forEach(day => {
         ngDaysParams += `&ng_days=${encodeURIComponent(day)}`;
     });
 
-    // 127.0.0.1:8000 のAPIサーバーにリクエストを投げる
     const url = `http://127.0.0.1:8000/api/schedule?latitude=${lat}&longitude=${lon}&target_days=${targetDays}${ngDaysParams}`;
 
     try {
@@ -59,31 +45,32 @@ async function initResultPage() {
             return;
         }
 
-        // --- 【移植】① おすすめスケジュールカードの自動生成 ---
+        // --- ① おすすめスケジュールカードの自動生成 ---
         cardContainer.innerHTML = '';
         schedule.forEach(day => {
             const dateObj = new Date(day.date);
             const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
 
             const card = document.createElement('div');
-            card.className = "bg-white p-6 rounded-2xl shadow-modern flex flex-col justify-between transition-all hover:shadow-modern-lg";
+            // 【変更】外部CSSで定義した汎用的なクラス名に差し替え
+            card.className = "comfort-card";
 
             card.innerHTML = `
                 <div>
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-slate-900 font-bold text-lg">${formattedDate} <span class="text-sm font-normal text-slate-400">(${day.weekday})</span></span>
-                        <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">${day.score} 点</span>
+                    <div class="card-header">
+                        <span class="card-date">${formattedDate} <span class="card-weekday">(${day.weekday})</span></span>
+                        <span class="card-score">${day.score} 点</span>
                     </div>
-                    <div class="space-y-2 text-sm text-slate-500 font-medium">
-                        <div class="flex items-center gap-1.5"><span>☔</span> 降水確率: ${day.detail.max_precip}%</div>
-                        <div class="flex items-center gap-1.5"><span>🌡️</span> 平均体感: ${day.detail.avg_temp}℃</div>
+                    <div class="card-details">
+                        <div class="card-detail-item"><span>☔</span> 降水確率: ${day.detail.max_precip}%</div>
+                        <div class="card-detail-item"><span>🌡️</span> 平均体感: ${day.detail.avg_temp}℃</div>
                     </div>
                 </div>
             `;
             cardContainer.appendChild(card);
         });
 
-        // --- 【移植】② Chart.js による快適度グラフの描画 ---
+        // --- ② Chart.js による快適度グラフの描画 ---
         const dailyScores = data.daily_scores;
         const labels = [];
         const scoresData = [];
@@ -119,7 +106,7 @@ async function initResultPage() {
             }
         });
 
-        // --- 【移植】③ 7日間の詳細データテーブルの生成 ---
+        // --- ③ 7日間の詳細データテーブルの生成 ---
         detailsTableBody.innerHTML = '';
         Object.keys(dailyScores).forEach(dateStr => {
             const info = dailyScores[dateStr];
@@ -129,37 +116,31 @@ async function initResultPage() {
             const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
             const jpWeekday = dayLabels[dateObj.getDay()];
 
+            // 点数に応じたステータスクラスのマッピング
             let statusEmoji = '☔';
             let statusText = 'スキップ推奨';
-            let statusColor = 'text-slate-400';
+            let statusClass = 'status-skipped';
             
             if (info.score >= 80) {
-                statusEmoji = '✨';
-                statusText = '最高日和';
-                statusColor = 'text-emerald-600 font-bold';
+                statusEmoji = '✨'; statusText = '最高日和'; statusClass = 'status-excellent';
             } else if (info.score >= 50) {
-                statusEmoji = '☁️';
-                statusText = 'まあまあ';
-                statusColor = 'text-blue-600';
+                statusEmoji = '☁️'; statusText = 'まあまあ'; statusClass = 'status-good';
             } else if (info.score > 0) {
-                statusEmoji = '⚠️';
-                statusText = '微妙かも';
-                statusColor = 'text-amber-600';
+                statusEmoji = '⚠️'; statusText = '微妙かも'; statusClass = 'status-warning';
             }
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-50/80 transition-colors";
             tr.innerHTML = `
-                <td class="py-4 pl-2 font-medium text-slate-900">${formattedDate} <span class="text-xs text-slate-400 font-normal">(${jpWeekday})</span></td>
-                <td class="py-4 ${statusColor}">${statusEmoji} ${info.score}点 <span class="text-xs text-slate-400 font-normal">(${statusText})</span></td>
-                <td class="py-4 font-medium text-slate-600">☔ ${info.max_precip}%</td>
-                <td class="py-4 font-medium text-slate-600">💨 ${info.max_wind} km/h</td>
-                <td class="py-4 font-medium text-slate-600">🌡️ ${info.avg_temp} ℃</td>
+                <td style="padding-left: 0.5rem; font-weight: 700; color: #1e293b;">${formattedDate} <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">( ${jpWeekday} )</span></td>
+                <td class="${statusClass}">${statusEmoji} ${info.score}点 <span class="status-subtext">(${statusText})</span></td>
+                <td>☔ ${info.max_precip}%</td>
+                <td>💨 ${info.max_wind} km/h</td>
+                <td>🌡️ ${info.avg_temp} ℃</td>
             `;
             detailsTableBody.appendChild(tr);
         });
 
-        // ローディングを消して、結果エリアをドラマチックに表示
+        // ローディングを非表示にし、結果ビュー全体を一斉表示
         statusMessage.classList.add('hidden');
         resultSection.classList.remove('hidden');
 
@@ -169,26 +150,5 @@ async function initResultPage() {
     }
 }
 
-// ==========================================
-// 3. タブ切り替えの制御ロジック
-// ==========================================
-const activeTabClass = "px-5 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none";
-const inactiveTabClass = "px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300 focus:outline-none";
-
-tabBtnSchedule.addEventListener('click', () => {
-    tabBtnSchedule.className = activeTabClass; tabBtnDetails.className = inactiveTabClass; tabBtnLogic.className = inactiveTabClass;
-    tabContentSchedule.classList.remove('hidden'); tabContentDetails.classList.add('hidden'); tabContentLogic.classList.add('hidden');
-});
-
-tabBtnDetails.addEventListener('click', () => {
-    tabBtnSchedule.className = inactiveTabClass; tabBtnDetails.className = activeTabClass; tabBtnLogic.className = inactiveTabClass;
-    tabContentSchedule.classList.add('hidden'); tabContentDetails.classList.remove('hidden'); tabContentLogic.classList.add('hidden');
-});
-
-tabBtnLogic.addEventListener('click', () => {
-    tabBtnSchedule.className = inactiveTabClass; tabBtnDetails.className = inactiveTabClass; tabBtnLogic.className = activeTabClass;
-    tabContentSchedule.classList.add('hidden'); tabContentDetails.classList.add('hidden'); tabContentLogic.classList.remove('hidden');
-});
-
-// ページ読み込みと同時に初期化処理をキック
+// ページ読み込みと同時に初期化
 initResultPage();

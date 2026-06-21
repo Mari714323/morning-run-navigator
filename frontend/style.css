@@ -1,11 +1,406 @@
-/* アプリ全体のカスタムスタイルシート */
+/* ==========================================
+   🎨 デザインシステム・変数の定義
+   ========================================== */
+:root {
+    --font-base: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #f1f5f9;
+    
+    /* トーン＆マナーカラー */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    
+    /* ステータスカラー */
+    --excellent: #10b981;
+    --excellent-bg: #ecfdf5;
+    --good: #2563eb;
+    --warning: #d97706;
+    --skipped: #94a3b8;
 
-/* ボタンやつまみを選択したときの青い枠線を少しオシャレにする調整 */
-input:focus, select:focus, button:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    /* 高級感のある繊細なモダンシャドウ */
+    --shadow-modern: 0 10px 30px -5px rgb(0 0 0 / 0.01), 0 5px 15px -3px rgb(0 0 0 / 0.005);
+    --shadow-modern-lg: 0 20px 40px -10px rgb(0 0 0 / 0.04), 0 10px 20px -5px rgb(0 0 0 / 0.01);
 }
 
-/* 画面のスクロールを滑らかにする設定 */
+/* ==========================================
+   🧱 全体・レイアウトの骨組み
+   ========================================== */
 html {
     scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: var(--font-base);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* フルワイドストライプ内を中央寄せにするコンテナ */
+.content-container {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* ==========================================
+   ① ヘッダーコンポーネント
+   ========================================== */
+.main-header {
+    width: 100%;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+}
+
+.header-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .header-flex {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 900;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.025em;
+}
+
+.header-sub {
+    color: var(--text-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* 親切なバックボタン */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    background-color: var(--primary-light);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: fit-content;
+}
+
+.btn-back:hover {
+    background-color: #dbeafe;
+}
+
+/* ヘッダーナビゲーションエリア */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.btn-nav:hover {
+    color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+/* ==========================================
+   中心：メインラッパー ＆ 共通カード
+   ========================================== */
+.main-wrapper {
+    width: 100%;
+    padding: 3rem 0;
+}
+
+.section-card {
+    background-color: var(--bg-card);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-modern);
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta-badge-area {
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 0.05em;
+}
+
+.badge-pref {
+    color: var(--primary);
+    background-color: var(--primary-light);
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: 800;
+}
+
+/* ==========================================
+   【セクション1】おすすめスケジュール・カードグリッド
+   ========================================== */
+.card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+    .card-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.comfort-card {
+    background-color: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.comfort-card:hover {
+    box-shadow: var(--shadow-modern-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.card-date {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.card-weekday {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.card-score {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+}
+
+.card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.card-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 18rem;
+}
+
+/* ==========================================
+   【セクション2】7日間の詳細データテーブル
+   ========================================== */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.data-table th {
+    color: var(--text-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table td {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.data-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(248, 250, 252, 0.8);
+}
+
+.status-excellent { color: var(--excellent); font-weight: 700; }
+.status-good { color: var(--good); }
+.status-warning { color: var(--warning); }
+.status-skipped { color: var(--skipped); }
+
+.status-subtext {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+/* ==========================================
+   ✨ 【新・拡張】ロジック解説カード用デザインシステム
+   ========================================== */
+.logic-intro {
+    font-size: 0.938rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+/* 4枚のカードを美しく配置するグリッドコンテナ */
+.logic-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .logic-grid {
+        grid-template-columns: repeat(2, 1fr); /* PC環境では2列のタイル型に自動変形 */
+    }
+}
+
+/* 独立した各ロジックカードの装飾 */
+.logic-card {
+    background-color: var(--bg-card);
+    padding: 1.75rem;
+    border-radius: 1.25rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-modern);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.logic-card:hover {
+    box-shadow: var(--shadow-modern-lg);
+    transform: translateY(-3px); /* マウスホバーでふわりと3px浮き上がるモダン演出 */
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.logic-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logic-card-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ==========================================
+   共通ユーティリティ (ローディング等)
+   ========================================== */
+.loading-box {
+    text-align: center;
+    color: var(--text-light);
+    font-weight: 500;
+    margin: 4rem 0;
+}
+
+.loading-flex {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
 }
