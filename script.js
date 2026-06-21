@@ -5,6 +5,7 @@ const btn = document.getElementById('fetch-btn');
 const targetDaysSelect = document.getElementById('target-days');
 const latitudeInput = document.getElementById('latitude');
 const longitudeInput = document.getElementById('longitude');
+const locationSelect = document.getElementById('location-select');
 const statusMessage = document.getElementById('status-message');
 const resultSection = document.getElementById('result-section');
 const cardContainer = document.getElementById('card-container');
@@ -163,3 +164,58 @@ tabBtnLogic.addEventListener('click', () => {
     tabContentSchedule.classList.add('hidden');
     tabContentLogic.classList.remove('hidden');
 });
+
+// ==========================================
+// 【追加】4. API（CSV）から都道府県データを取得 ＆ 連動ロジック
+// ==========================================
+// APIから取得した都道府県データを一時的に保存しておく配列
+let locationsData = [];
+
+// 画面が開いた瞬間に、新設したAPIから都道府県リストを読み込む関数
+async function fetchLocations() {
+    try {
+        // バックエンドに新設した都道府県APIをおねだりする
+        const response = await fetch('http://127.0.0.1:8000/api/locations');
+        locationsData = await response.json();
+
+        // HTML側の初期表示（データ読み込み中...）を一旦クリア
+        locationSelect.innerHTML = '';
+
+        // CSVから届いた47都道府県のデータをループして、optionタグを動的に生成
+        locationsData.forEach(loc => {
+            const option = document.createElement('option');
+            option.value = loc.pref_name;
+            option.textContent = loc.pref_name;
+            
+            // 初期状態として「神奈川県」を選択状態にする
+            if (loc.pref_name === '神奈川県') {
+                option.selected = true;
+            }
+            locationSelect.appendChild(option);
+        });
+
+        // 最初から選択されている「神奈川県」の座標をフォームの初期値としてセット
+        updateCoordinates('神奈川県');
+
+    } catch (error) {
+        console.error('都道府県データの取得に失敗しました:', error);
+        locationSelect.innerHTML = '<option value="">データの読み込みに失敗しました</option>';
+    }
+}
+
+// 選ばれた都道府県名から座標を検索し、入力欄（緯度・経度）の数値を上書きする関数
+function updateCoordinates(prefName) {
+    const target = locationsData.find(loc => loc.pref_name === prefName);
+    if (target) {
+        latitudeInput.value = target.lat;
+        longitudeInput.value = target.lon;
+    }
+}
+
+// 都道府県セレクトボックスが変更された（ユーザーが別の県を選んだ）時のイベント処理
+locationSelect.addEventListener('change', () => {
+    updateCoordinates(locationSelect.value);
+});
+
+// 画面の読み込み（スクリプトの実行）と同時に自動でAPI通信をキック
+fetchLocations();
