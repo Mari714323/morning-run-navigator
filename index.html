@@ -72,7 +72,8 @@
         </section>
 
 
-        <div id="form-section" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 scroll-mt-6">            <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定</h2>
+        <div id="form-section" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 scroll-mt-6"> 
+            <h2 class="text-lg font-semibold mb-4 text-slate-700">📋 スケジュール条件設定</h2>
             <div class="flex flex-col gap-4">
                 <div class="flex flex-wrap gap-4 items-end">
                     
@@ -120,9 +121,12 @@
         </div>
 
         <main id="result-section" class="hidden">
-            <div class="flex border-b border-slate-200 mb-6">
+            <div class="flex border-b border-slate-200 mb-6 flex-wrap gap-1">
                 <button id="tab-btn-schedule" class="px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none">
                     ✨ おすすめスケジュール
+                </button>
+                <button id="tab-btn-details" class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none">
+                    📅 7日間の詳細データ
                 </button>
                 <button id="tab-btn-logic" class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none">
                     💡 算出ロジックの解説
@@ -142,6 +146,27 @@
                     <div class="relative w-full h-64">
                         <canvas id="comfort-chart"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <div id="tab-content-details" class="hidden bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <h2 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
+                    <span>📅</span> 7日間の快適度詳細一覧
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                                <th class="pb-3 pl-2">日付</th>
+                                <th class="pb-3">快適度</th>
+                                <th class="pb-3">降水確率</th>
+                                <th class="pb-3">最大風速</th>
+                                <th class="pb-3">平均体感</th>
+                            </tr>
+                        </thead>
+                        <tbody id="details-table-body" class="text-slate-600 text-sm divide-y divide-slate-100">
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

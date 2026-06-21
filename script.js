@@ -9,11 +9,13 @@ const locationSelect = document.getElementById('location-select');
 const statusMessage = document.getElementById('status-message');
 const resultSection = document.getElementById('result-section');
 const cardContainer = document.getElementById('card-container');
-
 const tabBtnSchedule = document.getElementById('tab-btn-schedule');
 const tabBtnLogic = document.getElementById('tab-btn-logic');
 const tabContentSchedule = document.getElementById('tab-content-schedule');
 const tabContentLogic = document.getElementById('tab-content-logic');
+const tabBtnDetails = document.getElementById('tab-btn-details');
+const tabContentDetails = document.getElementById('tab-content-details');
+const detailsTableBody = document.getElementById('details-table-body');
 
 // 【追加】描画したグラフのインスタンスを記憶しておく変数（再描画時のバグ防止用）
 let comfortChart = null;
@@ -132,6 +134,52 @@ btn.addEventListener('click', async () => {
         });
         // -----------------------------------------------------
 
+        // --- 【追加】📅 7日間の詳細データテーブルの生成処理 ---
+        detailsTableBody.innerHTML = ''; // 過去の古い表データを一旦クリア
+        
+        // バックエンドから届いた 7日間の全データをループして、泥臭い具体的な数値を1行ずつ表に流し込む
+        Object.keys(dailyScores).forEach(dateStr => {
+            const info = dailyScores[dateStr];
+            const dateObj = new Date(dateStr);
+            const formattedDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+            
+            // 曜日を日本語にマッピング
+            const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+            const jpWeekday = dayLabels[dateObj.getDay()];
+
+            // スコア（点数）の高さに合わせて、文字色と絵文字をポップに切り替えて「楽しそうな見た目」にする
+            let statusEmoji = '☔';
+            let statusText = 'スキップ推奨';
+            let statusColor = 'text-slate-400';
+            
+            if (info.score >= 80) {
+                statusEmoji = '✨';
+                statusText = '最高日和';
+                statusColor = 'text-emerald-600 font-bold';
+            } else if (info.score >= 50) {
+                statusEmoji = '☁️';
+                statusText = 'まあまあ';
+                statusColor = 'text-blue-600';
+            } else if (info.score > 0) {
+                statusEmoji = '⚠️';
+                statusText = '微妙かも';
+                statusColor = 'text-amber-600';
+            }
+
+            // HTMLのテーブル行（trタグ）の骨組みを生成
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50/80 transition-colors"; // マウスを乗せると滑らかに行の色が変わるオシャレ演出
+            tr.innerHTML = `
+                <td class="py-3.5 pl-2 font-medium text-slate-900">${formattedDate} <span class="text-xs text-slate-400 font-normal">(${jpWeekday})</span></td>
+                <td class="py-3.5 ${statusColor}">${statusEmoji} ${info.score}点 <span class="text-xs text-slate-400 font-normal">(${statusText})</span></td>
+                <td class="py-3.5 font-medium text-slate-700">☔ ${info.max_precip}%</td>
+                <td class="py-3.5 font-medium text-slate-700">💨 ${info.max_wind} km/h</td>
+                <td class="py-3.5 font-medium text-slate-700">🌡️ ${info.avg_temp} ℃</td>
+            `;
+            detailsTableBody.appendChild(tr);
+        });
+        // -----------------------------------------------------
+
         // ローディングを消して結果を表示
         statusMessage.classList.add('hidden');
         resultSection.classList.remove('hidden');
@@ -147,21 +195,40 @@ btn.addEventListener('click', async () => {
 // ==========================================
 // 3. タブ切り替えの制御ロジック
 // ==========================================
+// ボタンの見た目（デザインクラス）の定義を共通化してスッキリ整理
+const activeTabClass = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
+const inactiveTabClass = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
+
 // 「おすすめスケジュール」タブがクリックされたとき
 tabBtnSchedule.addEventListener('click', () => {
-    tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
-    tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
+    tabBtnSchedule.className = activeTabClass;
+    tabBtnDetails.className = inactiveTabClass;
+    tabBtnLogic.className = inactiveTabClass;
     
     tabContentSchedule.classList.remove('hidden');
+    tabContentDetails.classList.add('hidden');
+    tabContentLogic.classList.add('hidden');
+});
+
+// 【追加】「7日間の詳細データ」タブがクリックされたとき
+tabBtnDetails.addEventListener('click', () => {
+    tabBtnSchedule.className = inactiveTabClass;
+    tabBtnDetails.className = activeTabClass;
+    tabBtnLogic.className = inactiveTabClass;
+    
+    tabContentSchedule.classList.add('hidden');
+    tabContentDetails.classList.remove('hidden');
     tabContentLogic.classList.add('hidden');
 });
 
 // 「算出ロジックの解説」タブがクリックされたとき
 tabBtnLogic.addEventListener('click', () => {
-    tabBtnSchedule.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 focus:outline-none";
-    tabBtnLogic.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 focus:outline-none";
+    tabBtnSchedule.className = inactiveTabClass;
+    tabBtnDetails.className = inactiveTabClass;
+    tabBtnLogic.className = activeTabClass;
     
     tabContentSchedule.classList.add('hidden');
+    tabContentDetails.classList.add('hidden');
     tabContentLogic.classList.remove('hidden');
 });
 
